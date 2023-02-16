@@ -15,7 +15,6 @@ core.debug(issue)
 main(email_username, email_password, email_to, issue)
 
 function main(email_username, email_password, email_to, issue) {
-    console.log(issue)
     var need_attention = false;
     try {
         if (issue?.title?.includes(filter_kw) || issue?.body?.includes(filter_kw)) { 
