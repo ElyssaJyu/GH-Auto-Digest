@@ -1,1 +1,1 @@
-# GH-Auto-Digest
+# GH-Auto-Digest-Bot
