@@ -1,0 +1,21 @@
+name: "GitHub Issues Filter"
+description: "This action will filter issue whether need notify by title and body when is created"
+author: "xu-ms,ElyssaJyu"
+branding:
+  icon: "book-open"
+  color: "green"
+inputs:
+  email_password:
+    description: "send email password"
+    require: true
+  email_username:
+    description: "send email username"
+    require: true
+outputs:
+  issue_info:
+    description: "opened issue info"
+  need_attention:
+    description: "need attention"
+runs:
+  using: "node16"
+  main: "index.js"
