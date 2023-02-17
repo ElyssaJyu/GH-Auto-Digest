@@ -3,13 +3,13 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const nodemailer = require('nodemailer');
 
-const first_filter_comb = ["safty", "security", "concern"];
+const first_filter_comb = ["safety", "security", "concern"];
 const second_filter_comb = ["data", "password", "profile"];
 const filter_kw = "privacy";
 const issue = github.context.payload.issue;
 const email_password = core.getInput('email_password');
-const email_username = core.getInput('email_username');
-const email_to = ["sunelyssa@microsoft.com","xuzhang4@microsoft.com"];
+const email_username = core.getInput('sender_email');
+const email_to = core.getInput('recipient_email').split(',');
 core.debug(issue)
 
 main(email_username, email_password, email_to, issue)

@@ -8,8 +8,11 @@ inputs:
   email_password:
     description: "send email password"
     require: true
-  email_username:
+  sender_email:
     description: "send email username"
+    require: true
+  recipient_email:
+    description: "to email"
     require: true
 outputs:
   issue_info:
