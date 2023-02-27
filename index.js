@@ -3,38 +3,55 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const nodemailer = require('nodemailer');
 
-const first_filter_comb = ["safety", "security", "concern"];
-const second_filter_comb = ["data", "password", "profile"];
-const filter_kw = "privacy";
 const issue = github.context.payload.issue;
 const email_password = core.getInput('email_password');
 const email_username = core.getInput('sender_email');
 const email_to = core.getInput('recipient_email').split(',');
-core.debug(issue)
 
+const keywords_lists = [
+    ["privacy", "theft", "steal", "leak"],
+    ["safety", "security", "concern"],
+    ["data", "password", "profile"], 
+    ["send", "user", "Microsoft","content"] 
+]
+
+core.debug(issue)
+  
 main(email_username, email_password, email_to, issue)
 
 function main(email_username, email_password, email_to, issue) {
     var need_attention = false;
     try {
-        if (issue?.title?.includes(filter_kw) || issue?.body?.includes(filter_kw)) { 
-            setOutput_sendEmail(email_username, email_password, email_to, issue);
-            need_attention = true;
+        //any word in the 1st item of keywords_lists
+        if ((issue.title.match(new RegExp(keywords_lists[0].join('|', 'g')))) || 
+            (issue.body.match(new RegExp(keywords_lists[0].join('|', 'g'))))){
+                setOutput_sendEmail(email_username, email_password, email_to, issue);
+                need_attention = true;
         }
-        else {
-            for (let item1 of first_filter_comb) {
-                for (let item2 of second_filter_comb) {
-                    if ((issue?.title?.includes(item1) && issue?.title?.includes(item2)) ||
-                        (issue?.body?.includes(item1) && issue?.body?.includes(item2))) {
-                            setOutput_sendEmail(email_username, email_password, email_to, issue);
-                        need_attention = true;
+        else{
+            //4 words coexist in the 4th item of keywords_lists
+            if (keywords_lists[3].every(coexist_keywords => 
+                (issue.title.includes(coexist_keywords) || issue.body.includes(coexist_keywords)))){
+                    setOutput_sendEmail(email_username, email_password, email_to, issue);
+                    need_attention = true;
+            }else{
+                //any word from 2nd item shows together with any word from 3nd item in the keywords_lists
+                for (let i = 0; i < keywords_lists[1].length; i++) {
+                    const firstKeyword = keywords_lists[1][i];
+                    for (let j = 0; j < keywords_lists[2].length; j++) {
+                      const secondKeyword = keywords_lists[2][j];
+                      if ((issue.title.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'i'))) ||
+                            (issue.body.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'i')))) {
+                                setOutput_sendEmail(email_username, email_password, email_to, issue);
+                                need_attention = true;
+                                break;
+                      }
+                    }
+                    if (need_attention) {
                         break;
                     }
                 }
-                if (need_attention) {
-                    break;
-                }
-            };
+            }
         }
         if (!need_attention) {
             core.setOutput("need_attention", 'false');
