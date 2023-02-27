@@ -9,7 +9,7 @@ const filter_kw = "privacy";
 const issue = github.context.payload.issue;
 const email_password = core.getInput('email_password');
 const email_username = core.getInput('sender_email');
-const email_to = core.getInput('recipient_email').split(',');
+const email_to = core.getInput('recipient_email').split(';');
 core.debug(issue)
 
 main(email_username, email_password, email_to, issue)
@@ -65,16 +65,6 @@ function setOutput_sendEmail(email_username, email_password, email_to, issue) {
 }
 
 function sendMail(email_username, email_password, email_to, issue) {
-
-    let transporter = nodemailer.createTransport({
-        host: 'smtp.office365.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: email_username,
-            pass: email_password
-        }
-    });
 
     const emailContent = `
     <html>
@@ -161,6 +151,14 @@ function sendMail(email_username, email_password, email_to, issue) {
         </body>
     </html>
     `
+
+    let transporter = nodemailer.createTransport({
+        host: 'primary.exchange.microsoft.com',
+        port: 25,
+        tls: {
+            rejectUnauthorized: false
+        }
+    })
 
     let mailOptions = {
         from: email_username,
