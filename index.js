@@ -23,8 +23,8 @@ function main(email_username, email_password, email_to, issue) {
     var need_attention = false;
     try {
         //any word in the 1st item of keywords_lists
-        if ((issue.title.match(new RegExp(keywords_lists[0].join('|', 'g')))) || 
-            (issue.body.match(new RegExp(keywords_lists[0].join('|', 'g'))))){
+        if ((issue.title.match(new RegExp(keywords_lists[0].join('|', 'gi')))) || 
+            (issue.body.match(new RegExp(keywords_lists[0].join('|', 'gi'))))){
                 setOutput_sendEmail(email_username, email_password, email_to, issue);
                 need_attention = true;
         }
@@ -40,8 +40,8 @@ function main(email_username, email_password, email_to, issue) {
                     const firstKeyword = keywords_lists[1][i];
                     for (let j = 0; j < keywords_lists[2].length; j++) {
                       const secondKeyword = keywords_lists[2][j];
-                      if ((issue.title.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'i'))) ||
-                            (issue.body.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'i')))) {
+                      if ((issue.title.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'gi'))) ||
+                            (issue.body.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'gi')))) {
                                 setOutput_sendEmail(email_username, email_password, email_to, issue);
                                 need_attention = true;
                                 break;
