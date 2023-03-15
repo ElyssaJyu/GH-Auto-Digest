@@ -19,6 +19,7 @@
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",
+    "express": "^4.18.2",
     "nodemailer": "^6.9.1",
     "react-dom": "^18.2.0",
     "resium": "^1.16.0"
