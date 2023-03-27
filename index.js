@@ -7,6 +7,8 @@ const issue = github.context.payload.issue;
 const email_password = core.getInput('email_password');
 const email_username = core.getInput('sender_email');
 const email_to = core.getInput('recipient_email').split(';');
+const RETRY_MAX = 3;
+let need_retry_time = RETRY_MAX;
 core.debug(issue)
 
 const keywords_lists = [
@@ -16,10 +18,7 @@ const keywords_lists = [
     ["send", "user", "Microsoft","content"] 
 ]
 
-core.debug(issue)
-  
 main(email_username, email_password, email_to, issue)
-
 function main(email_username, email_password, email_to, issue) {
     var need_attention = false;
     try {
@@ -186,14 +185,20 @@ function sendMail(email_username, email_password, email_to, issue) {
         priority: "high"
     };
 
-    transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-            core.error(error);
-        } else {
-            core.info('Email sent: ' + info.response);
-        }
-    });
+    transporter.sendMail(mailOptions, (error,info,email_username_=email_username, email_password_ = email_password, email_to_=email_to, issue_=issue) => retryFunc(error,info,email_username_, email_password_, email_to_, issue_));
+}
 
+function retryFunc(error,info,email_username, email_password, email_to, issue){
+    if(error){
+        let Retry = RETRY_MAX - need_retry_time + 1;
+        core.error("Try times:" + Retry   + " | " + error);
+        need_retry_time--;
+        if(need_retry_time > 0){
+            sendMail(email_username, email_password, email_to, issue);
+        }
+    }else{
+        core.info('Email sent: ' + info.response);
+    }
 }
 
 module.exports = {
