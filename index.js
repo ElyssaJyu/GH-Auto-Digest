@@ -12,27 +12,33 @@ let need_retry_time = RETRY_MAX;
 core.debug(issue)
 
 const keywords_lists = [
-    ["privacy", "theft", "steal", "leak"],
+    ["privacy", "theft", "steal", "leak", "consent","privacy issue","privacy policy","privacy consent","data stored"],
     ["safety", "security", "concern"],
-    ["data", "password", "profile"], 
+    ["data", "password", "profile","policy"], 
     ["send", "user", "Microsoft","content"] 
 ]
+let matchwords = [];
 
 main(email_username, email_password, email_to, issue)
 function main(email_username, email_password, email_to, issue) {
     var need_attention = false;
+    var titleMatchWords = [];
+    var bodyMatchWords = [];
     try {
         //any word in the 1st item of keywords_lists
-        if ((issue.title.match(new RegExp(keywords_lists[0].join('|', 'gi')))) || 
-            (issue.body.match(new RegExp(keywords_lists[0].join('|', 'gi'))))){
-                setOutput_sendEmail(email_username, email_password, email_to, issue);
-                need_attention = true;
+        titleMatchWords = issue.title.match(new RegExp(keywords_lists[0].join('|'), 'gi'));
+        bodyMatchWords = issue.body.match(new RegExp(keywords_lists[0].join('|'), 'gi'));
+        if (titleMatchWords !== null || bodyMatchWords !== null){
+            matchwords = mergewithoutduplicates(titleMatchWords,bodyMatchWords);
+            setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
+            need_attention = true;
         }
         else{
             //4 words coexist in the 4th item of keywords_lists
             if (keywords_lists[3].every(coexist_keywords => 
-                (issue.title.includes(coexist_keywords) || issue.body.includes(coexist_keywords)))){
-                    setOutput_sendEmail(email_username, email_password, email_to, issue);
+                ((titleMatchWords = issue.title.includes(coexist_keywords)) || (bodyMatchWords = issue.body.includes(coexist_keywords))))){
+                    matchwords = ["send", "user", "Microsoft","content"];
+                    setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
                     need_attention = true;
             }else{
                 //any word from 2nd item shows together with any word from 3nd item in the keywords_lists
@@ -40,12 +46,15 @@ function main(email_username, email_password, email_to, issue) {
                     const firstKeyword = keywords_lists[1][i];
                     for (let j = 0; j < keywords_lists[2].length; j++) {
                       const secondKeyword = keywords_lists[2][j];
-                      if ((issue.title.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'gi'))) ||
-                            (issue.body.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'gi')))) {
-                                setOutput_sendEmail(email_username, email_password, email_to, issue);
-                                need_attention = true;
-                                break;
-                      }
+                      titleMatchWords = title.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'gi'));
+                      bodyMatchWords = body.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'gi'));
+                      if (titleMatchWords !== null || bodyMatchWords !== null){
+                        matchwords = mergewithoutduplicates(titleMatchWords,bodyMatchWords);
+                        console.log(matchwords)
+                      } 
+                      setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
+                      need_attention = true;
+                      break;                    
                     }
                     if (need_attention) {
                         break;
@@ -62,7 +71,19 @@ function main(email_username, email_password, email_to, issue) {
     }
 }
 
-function setOutput_sendEmail(email_username, email_password, email_to, issue) {
+function mergewithoutduplicates(...arrays) {
+    let mergedarray = [];
+    arrays
+        .filter(array => array!== null)
+        .forEach(array => {
+            const lowerCaseArray = array.map(item => item.toLowerCase());
+            mergedarray = [...mergedarray, ...lowerCaseArray]
+    });
+
+    return [...new Set([...mergedarray])];
+}
+
+function setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords) {
     var data = {
         "title": "privacy",
         "issueName": issue.title,
@@ -75,13 +96,13 @@ function setOutput_sendEmail(email_username, email_password, email_to, issue) {
     core.setOutput("issue_info", jsonData);
     core.notice("Alarm: new high priority issue need to look into!\n" + issue.html_url)
     try {
-        sendMail(email_username, email_password, email_to, issue);
+        sendMail(email_username, email_password, email_to, issue, matchwords);
     } catch (err) {
         core.error(err.message)
     }
 }
 
-function sendMail(email_username, email_password, email_to, issue) {
+function sendMail(email_username, email_password, email_to, issue,matchwords) {
 
     const emailContent = `
     <html>
@@ -151,6 +172,7 @@ function sendMail(email_username, email_password, email_to, issue) {
                                 padding-bottom: 12px;">
                                 Issue Create Time: ${issue.created_at}
                             </p>
+                            <br/>
                             <p>
                                 <a href="${issue.html_url}"
                                 style="text-decoration: none; 
@@ -160,6 +182,14 @@ function sendMail(email_username, email_password, email_to, issue) {
                                         font-weight: bold;"> 
                                 View Issue 
                                 </a>
+                            </p>
+                            <br/>
+                            <p class="data" 
+                                style="text-align: justify-all;
+                                align-items: center; 
+                                font-size: 15px;
+                                padding-bottom: 12px;">
+                                This issue is alarmed since matching keywords: [${matchwords}]
                             </p>
                         </td>
                     </tr>
