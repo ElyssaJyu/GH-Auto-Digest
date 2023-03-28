@@ -172,6 +172,13 @@ function sendMail(email_username, email_password, email_to, issue,matchwords) {
                                 padding-bottom: 12px;">
                                 Issue Create Time: ${issue.created_at}
                             </p>
+                            <p class="data" 
+                            style="text-align: justify-all;
+                            align-items: center; 
+                            font-size: 15px;
+                            padding-bottom: 12px;">
+                            This issue is alarmed since matching keywords: <span style="color:red;font-weight: bold;">${matchwords}</span>
+                            </p>
                             <br/>
                             <p>
                                 <a href="${issue.html_url}"
@@ -182,14 +189,6 @@ function sendMail(email_username, email_password, email_to, issue,matchwords) {
                                         font-weight: bold;"> 
                                 View Issue 
                                 </a>
-                            </p>
-                            <br/>
-                            <p class="data" 
-                                style="text-align: justify-all;
-                                align-items: center; 
-                                font-size: 15px;
-                                padding-bottom: 12px;">
-                                This issue is alarmed since matching keywords: [${matchwords}]
                             </p>
                         </td>
                     </tr>
