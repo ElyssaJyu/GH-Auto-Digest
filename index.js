@@ -36,7 +36,7 @@ function main(email_username, email_password, email_to, issue) {
         else{
             //4 words coexist in the 4th item of keywords_lists
             if (keywords_lists[3].every(coexist_keywords => 
-                ((titleMatchWords = issue.title.includes(coexist_keywords)) || (bodyMatchWords = issue.body.includes(coexist_keywords))))){
+                ((issue.title.includes(coexist_keywords) || issue.body.includes(coexist_keywords))))){
                     matchwords = ["send", "user", "Microsoft","content"];
                     setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
                     need_attention = true;
@@ -46,15 +46,14 @@ function main(email_username, email_password, email_to, issue) {
                     const firstKeyword = keywords_lists[1][i];
                     for (let j = 0; j < keywords_lists[2].length; j++) {
                       const secondKeyword = keywords_lists[2][j];
-                      titleMatchWords = title.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'gi'));
-                      bodyMatchWords = body.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b`, 'gi'));
+                      titleMatchWords = issue.title.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b|\\b${secondKeyword}\\b.*\\b${firstKeyword}\\b`, 'gi'));
+                      bodyMatchWords = issue.body.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b|\\b${secondKeyword}\\b.*\\b${firstKeyword}\\b`, 'gi'));
                       if (titleMatchWords !== null || bodyMatchWords !== null){
                         matchwords = mergewithoutduplicates(titleMatchWords,bodyMatchWords);
-                        console.log(matchwords)
-                      } 
-                      setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
-                      need_attention = true;
-                      break;                    
+                        setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
+                        need_attention = true;
+                        break;
+                      }            
                     }
                     if (need_attention) {
                         break;
@@ -214,16 +213,16 @@ function sendMail(email_username, email_password, email_to, issue,matchwords) {
         priority: "high"
     };
 
-    transporter.sendMail(mailOptions, (error,info,email_username_=email_username, email_password_ = email_password, email_to_=email_to, issue_=issue) => retryFunc(error,info,email_username_, email_password_, email_to_, issue_));
+    transporter.sendMail(mailOptions, (error,info,email_username_=email_username, email_password_ = email_password, email_to_=email_to, issue_=issue,matchwords_ = matchwords) => retryFunc(error,info,email_username_, email_password_, email_to_, issue_,matchwords_));
 }
 
-function retryFunc(error,info,email_username, email_password, email_to, issue){
+function retryFunc(error,info,email_username, email_password, email_to, issue,matchwords){
     if(error){
         let Retry = RETRY_MAX - need_retry_time + 1;
         core.error("Try times:" + Retry   + " | " + error);
         need_retry_time--;
         if(need_retry_time > 0){
-            sendMail(email_username, email_password, email_to, issue);
+            sendMail(email_username, email_password, email_to, issue,matchwords);
         }
     }else{
         core.info('Email sent: ' + info.response);
