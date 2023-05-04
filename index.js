@@ -25,9 +25,12 @@ function main(email_username, email_password, email_to, issue) {
     var titleMatchWords = [];
     var bodyMatchWords = [];
     try {
+        //remove link from issue body to avid matching link text
+        var issuebody = removeLink(issue.body);
+
         //any word in the 1st item of keywords_lists
         titleMatchWords = issue.title.match(new RegExp(keywords_lists[0].join('|'), 'gi'));
-        bodyMatchWords = issue.body.match(new RegExp(keywords_lists[0].join('|'), 'gi'));
+        bodyMatchWords = issuebody.match(new RegExp(keywords_lists[0].join('|'), 'gi'));
         if (titleMatchWords !== null || bodyMatchWords !== null){
             matchwords = mergewithoutduplicates(titleMatchWords,bodyMatchWords);
             setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
@@ -36,7 +39,7 @@ function main(email_username, email_password, email_to, issue) {
         else{
             //4 words coexist in the 4th item of keywords_lists
             if (keywords_lists[3].every(coexist_keywords => 
-                ((issue.title.includes(coexist_keywords) || issue.body.includes(coexist_keywords))))){
+                ((issue.title.includes(coexist_keywords) || issuebody.includes(coexist_keywords))))){
                     matchwords = ["send", "user", "Microsoft","content"];
                     setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
                     need_attention = true;
@@ -47,7 +50,7 @@ function main(email_username, email_password, email_to, issue) {
                     for (let j = 0; j < keywords_lists[2].length; j++) {
                       const secondKeyword = keywords_lists[2][j];
                       titleMatchWords = issue.title.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b|\\b${secondKeyword}\\b.*\\b${firstKeyword}\\b`, 'gi'));
-                      bodyMatchWords = issue.body.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b|\\b${secondKeyword}\\b.*\\b${firstKeyword}\\b`, 'gi'));
+                      bodyMatchWords = issuebody.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b|\\b${secondKeyword}\\b.*\\b${firstKeyword}\\b`, 'gi'));
                       if (titleMatchWords !== null || bodyMatchWords !== null){
                         matchwords = mergewithoutduplicates(titleMatchWords,bodyMatchWords);
                         setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
@@ -68,6 +71,12 @@ function main(email_username, email_password, email_to, issue) {
     catch (err) {
         core.setFailed(`Error ${err}`);
     }
+}
+
+function removeLink(str) {
+    const LinkRegex = /((https:\/\/github\.com\/MicrosoftEdge\/WebView2Feedback\/issues\/[^\s]*) | (https:\/\/user-images\.githubusercontent\.com\/[^\s]*))/g;
+    return str.replace(LinkRegex, '');
+
 }
 
 function mergewithoutduplicates(...arrays) {
