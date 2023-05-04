@@ -74,7 +74,7 @@ function main(email_username, email_password, email_to, issue) {
 }
 
 function removeLink(str) {
-    const LinkRegex = /((https:\/\/github\.com\/MicrosoftEdge\/WebView2Feedback\/issues\/[^\s]*) | (https:\/\/user-images\.githubusercontent\.com\/[^\s]*))/g;
+    const LinkRegex = /((https:\/\/github\.com\/MicrosoftEdge\/[^\s]*) | (https:\/\/user-images\.githubusercontent\.com\/[^\s]*))/g;
     return str.replace(LinkRegex, '');
 
 }
