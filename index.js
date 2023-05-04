@@ -217,7 +217,7 @@ function sendMail(email_username, email_password, email_to, issue,matchwords) {
     let mailOptions = {
         from: email_username,
         to: email_to,
-        subject: 'Alarm: new high priority issue need to look into!',
+        subject: '[WV2 GitHub Alerts] New high priority issue',
         html: emailContent,
         priority: "high"
     };
