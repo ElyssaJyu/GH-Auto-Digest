@@ -26,7 +26,7 @@ function main(email_username, email_password, email_to, issue) {
     var bodyMatchWords = [];
     try {
         //remove link from issue body to avid matching link text
-        var issuebody = removeLink(issue.body);
+        var issuebody = removeInfo(issue.body);
 
         //any word in the 1st item of keywords_lists
         titleMatchWords = issue.title.match(new RegExp(keywords_lists[0].join('|'), 'gi'));
@@ -73,11 +73,16 @@ function main(email_username, email_password, email_to, issue) {
     }
 }
 
-function removeLink(str) {
-    const LinkRegex = /((https:\/\/github\.com\/MicrosoftEdge\/[^\s]*) | (https:\/\/user-images\.githubusercontent\.com\/[^\s]*))/g;
-    return str.replace(LinkRegex, '');
+function removeInfo(str) {
+    const urlRegex = /https:\/\/github\.com\/MicrosoftEdge\/\S*|https:\/\/user-images\.githubusercontent\.com\/\S*/g;
+    const codeRegex = /```[\s\S]*?```/g;
 
+    str = str.replace(urlRegex, '');
+    str = str.replace(codeRegex, '[Code Snippet]');
+    
+    return str;
 }
+
 
 function mergewithoutduplicates(...arrays) {
     let mergedarray = [];
