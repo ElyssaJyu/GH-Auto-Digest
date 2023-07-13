@@ -15,7 +15,8 @@ const keywords_lists = [
     ["privacy", "theft", "steal", "leak", "consent","privacy issue","privacy policy","privacy consent","data stored"],
     ["safety", "security", "concern"],
     ["data", "password", "profile","policy"], 
-    ["send", "user", "Microsoft","content"] 
+    ["send", "user", "Microsoft","content"],
+    ["memory leak"] //bypass keywords   
 ]
 let matchwords = [];
 
@@ -28,8 +29,12 @@ function main(email_username, email_password, email_to, issue) {
         //remove link from issue body to avid matching link text
         var issuebody = removeInfo(issue.body);
 
-        //any word in the 1st item of keywords_lists
-        titleMatchWords = issue.title.match(new RegExp(keywords_lists[0].join('|'), 'gi'));
+        //any word in the 5th item of keywords_lists will be replaced by <bypassPharse>.
+        issuebody = bypassPhrase(issuebody, keywords_lists[4]);
+        var issuetitle = bypassPhrase(issue.title, keywords_lists[4]);
+
+        //any word in the 1st item of keywords_lists 
+        titleMatchWords = issuetitle.match(new RegExp(keywords_lists[0].join('|'), 'gi'));
         bodyMatchWords = issuebody.match(new RegExp(keywords_lists[0].join('|'), 'gi'));
         if (titleMatchWords !== null || bodyMatchWords !== null){
             matchwords = mergewithoutduplicates(titleMatchWords,bodyMatchWords);
@@ -39,7 +44,7 @@ function main(email_username, email_password, email_to, issue) {
         else{
             //4 words coexist in the 4th item of keywords_lists
             if (keywords_lists[3].every(coexist_keywords => 
-                ((issue.title.includes(coexist_keywords) || issuebody.includes(coexist_keywords))))){
+                ((issuetitle.includes(coexist_keywords) || issuebody.includes(coexist_keywords))))){
                     matchwords = ["send", "user", "Microsoft","content"];
                     setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
                     need_attention = true;
@@ -48,15 +53,15 @@ function main(email_username, email_password, email_to, issue) {
                 for (let i = 0; i < keywords_lists[1].length; i++) {
                     const firstKeyword = keywords_lists[1][i];
                     for (let j = 0; j < keywords_lists[2].length; j++) {
-                      const secondKeyword = keywords_lists[2][j];
-                      titleMatchWords = issue.title.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b|\\b${secondKeyword}\\b.*\\b${firstKeyword}\\b`, 'gi'));
-                      bodyMatchWords = issuebody.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b|\\b${secondKeyword}\\b.*\\b${firstKeyword}\\b`, 'gi'));
-                      if (titleMatchWords !== null || bodyMatchWords !== null){
-                        matchwords = mergewithoutduplicates(titleMatchWords,bodyMatchWords);
-                        setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
-                        need_attention = true;
-                        break;
-                      }            
+                        const secondKeyword = keywords_lists[2][j];
+                        titleMatchWords = issuetitle.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b|\\b${secondKeyword}\\b.*\\b${firstKeyword}\\b`, 'gi'));
+                        bodyMatchWords = issuebody.match(new RegExp(`\\b${firstKeyword}\\b.*\\b${secondKeyword}\\b|\\b${secondKeyword}\\b.*\\b${firstKeyword}\\b`, 'gi'));
+                        if (titleMatchWords !== null || bodyMatchWords !== null){
+                            matchwords = mergewithoutduplicates(titleMatchWords,bodyMatchWords);
+                            setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords);
+                            need_attention = true;
+                            break;
+                        }            
                     }
                     if (need_attention) {
                         break;
@@ -64,6 +69,7 @@ function main(email_username, email_password, email_to, issue) {
                 }
             }
         }
+        
         if (!need_attention) {
             core.setOutput("need_attention", 'false');
         }
@@ -83,6 +89,15 @@ function removeInfo(str) {
     return str;
 }
 
+function bypassPhrase(text, phrases) {
+    let lowerCaseText = text.toLowerCase();
+    phrases.forEach(phrase => {
+        let words = phrase.toLowerCase().split(' ');
+        let regex = new RegExp(words.join('\\s+') + '|' + words.reverse().join('\\s+'), 'g');
+        lowerCaseText = lowerCaseText.replace(regex, '<byPassPhrase>');
+    });
+    return lowerCaseText;
+}
 
 function mergewithoutduplicates(...arrays) {
     let mergedarray = [];
