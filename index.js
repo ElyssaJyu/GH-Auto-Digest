@@ -26,6 +26,17 @@ function main(email_username, email_password, email_to, issue) {
     var titleMatchWords = [];
     var bodyMatchWords = [];
     try {
+        //bypass issue with label name "feature request"
+        if (issue && Array.isArray(issue.labels)) {
+            var labelNames = issue.labels.map(label => label.name);
+            if (labelNames.includes("feature request")) {
+                core.setOutput("need_attention", 'false');
+                return;
+            }
+        } else {
+            console.error("Issue or labels property is not correctly defined.");
+        }
+        
         //remove link from issue body to avid matching link text
         var issuebody = removeInfo(issue.body);
 
@@ -114,6 +125,7 @@ function mergewithoutduplicates(...arrays) {
 function setOutput_sendEmail(email_username, email_password, email_to, issue, matchwords) {
     var data = {
         "title": "privacy",
+        "labels": issue.labels.map(label => label.name),
         "issueName": issue.title,
         "issueLink": issue.html_url,
         "issueNumber": issue.number,
@@ -192,6 +204,13 @@ function sendMail(email_username, email_password, email_to, issue,matchwords) {
                                 font-size: 15px;
                                 padding-bottom: 12px;">
                                 Issue Number: ${issue.number}
+                            </p>
+                            <p class="data" 
+                                style="text-align: justify-all;
+                                align-items: center; 
+                                font-size: 15px;
+                                padding-bottom: 12px;">
+                                Issue Label: ${issue.labels.map(label => label.name)}
                             </p>
                             <p class="data" 
                                 style="text-align: justify-all;
