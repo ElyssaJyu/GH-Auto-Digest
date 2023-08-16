@@ -37,7 +37,7 @@ function main(email_username, email_password, email_to, issue) {
             console.error("Issue or labels property is not correctly defined.");
         }
         
-        //remove link from issue body to avid matching link text
+        //remove link from issue body to avoid matching link text
         var issuebody = removeInfo(issue.body);
 
         //any word in the 5th item of keywords_lists will be replaced by <bypassPharse>.
@@ -91,6 +91,7 @@ function main(email_username, email_password, email_to, issue) {
 }
 
 function removeInfo(str) {
+    // The following Regex is designed to match URLs from issue reference and image attachment; code block.
     const urlRegex = /https:\/\/github\.com\/MicrosoftEdge\/\S*|https:\/\/user-images\.githubusercontent\.com\/\S*/g;
     const codeRegex = /```[\s\S]*?```/g;
 
